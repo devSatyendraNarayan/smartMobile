@@ -2,14 +2,16 @@ import React, { useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "../components/alert";
 import { useSave } from "../context/SaveContext"; // Import the save context
+import { useTheme } from "../context/ThemeContext"; // Import the theme context
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore"; // Import Firestore functions
 
 const UPIContent = () => {
   const { createDocument } = useSave(); // Destructure createDocument from context
+  const { theme } = useTheme(); // Get the current theme from context
+
   const [formData, setFormData] = useState({
     userName: "",
     upiId: "",
-    amount: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -31,11 +33,6 @@ const UPIContent = () => {
     }
     if (!formData.upiId.trim()) {
       newErrors.upiId = "UPI ID is required";
-    }
-    if (!formData.amount.trim()) {
-      newErrors.amount = "Amount is required";
-    } else if (isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
-      newErrors.amount = "Please enter a valid amount";
     }
 
     setErrors(newErrors);
@@ -73,7 +70,6 @@ const UPIContent = () => {
         setFormData({
           userName: "",
           upiId: "",
-          amount: "",
         });
         setShowErrorAlert(false);
       } catch (error) {
@@ -100,7 +96,7 @@ const UPIContent = () => {
           name="userName"
           value={formData.userName}
           onChange={handleChange}
-          className="w-full  bg-white text-gray-800 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-800 border-gray-300'}`}
           placeholder="Enter user name"
         />
         {errors.userName && (
@@ -114,7 +110,7 @@ const UPIContent = () => {
           name="upiId"
           value={formData.upiId}
           onChange={handleChange}
-          className="w-full bg-white text-gray-800 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-800 border-gray-300'}`}
           placeholder="Enter UPI ID"
         />
         {errors.upiId && (
@@ -122,23 +118,9 @@ const UPIContent = () => {
         )}
       </div>
 
-      <div>
-        <input
-          type="number"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          className="w-full px-4 bg-white text-gray-800 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          placeholder="Enter amount"
-        />
-        {errors.amount && (
-          <p className="text-red-500 text-sm mt-1">{errors.amount}</p>
-        )}
-      </div>
-
       <button
         type="submit"
-        className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className={`w-full py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${theme === 'dark' ? 'bg-indigo-400 text-gray-100' : 'bg-indigo-600 text-white'}`}
       >
         Add UPI
       </button>

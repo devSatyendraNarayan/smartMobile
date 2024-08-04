@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@headlessui/react": "^2.1.2",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.0",
     "axios": "^1.7.3",
     "date-fns": "^3.6.0",
     "firebase": "^10.12.5",
     "framer-motion": "^11.3.21",
+    "ifsc": "^2.0.29",
     "lodash": "^4.17.21",
     "lucide-react": "^0.424.0",
     "react": "^18.3.1",

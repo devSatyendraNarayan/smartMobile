@@ -2,15 +2,17 @@ import React, { useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "../components/alert";
 import { useSave } from "../context/SaveContext"; // Import the save context
+import { useTheme } from "../context/ThemeContext"; // Import the theme context
 import { getFirestore, collection, query, where, getDocs } from "firebase/firestore"; // Import Firestore functions
 
 const PhoneNumberContent = () => {
   const { createDocument } = useSave(); // Destructure createDocument from context
+  const { theme } = useTheme(); // Get the current theme from context
+
   const [formData, setFormData] = useState({
     name: "",
     phoneNumber: "",
     platform: "",
-    amount: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -67,7 +69,6 @@ const PhoneNumberContent = () => {
           name: "",
           phoneNumber: "",
           platform: "",
-          amount: "",
         });
         setShowErrorAlert(false);
       } catch (error) {
@@ -94,7 +95,7 @@ const PhoneNumberContent = () => {
           name="name"
           value={formData.name}
           onChange={handleChange}
-          className="w-full bg-white text-gray-800 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-800 border-gray-300'}`}
           placeholder="Enter name"
         />
       </div>
@@ -105,7 +106,7 @@ const PhoneNumberContent = () => {
           name="phoneNumber"
           value={formData.phoneNumber}
           onChange={handleChange}
-          className="w-full bg-white text-gray-800 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-800 border-gray-300'}`}
           placeholder="Enter phone number"
         />
         {errors.phoneNumber && (
@@ -119,25 +120,14 @@ const PhoneNumberContent = () => {
           name="platform"
           value={formData.platform}
           onChange={handleChange}
-          className="w-full bg-white text-gray-800 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${theme === 'dark' ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-800 border-gray-300'}`}
           placeholder="Paytm, PhonePe, Gpay etc.."
-        />
-      </div>
-
-      <div>
-        <input
-          type="number"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          className="w-full bg-white text-gray-800 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          placeholder="Enter amount"
         />
       </div>
 
       <button
         type="submit"
-        className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        className={`w-full py-2 rounded-md hover:bg-indigo-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${theme === 'dark' ? 'bg-indigo-400 text-gray-100' : 'bg-indigo-600 text-white'}`}
       >
         Add Phone Number
       </button>

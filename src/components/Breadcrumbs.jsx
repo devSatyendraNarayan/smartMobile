@@ -1,39 +1,53 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { HiChevronRight } from 'react-icons/hi';
 
 const Breadcrumbs = () => {
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   return (
-    <nav className="flex mb-4" aria-label="Breadcrumb">
-      <ol className="inline-flex items-center space-x-1 md:space-x-3">
-        <li className="inline-flex items-center">
-          <Link to="/" className="text-gray-700 hover:text-gray-900">
+    <nav className="flex mb-6" aria-label="Breadcrumb">
+      <ol className="inline-flex items-center space-x-2 md:space-x-3">
+        <motion.li
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          className="inline-flex items-center"
+        >
+          <Link
+            to="/"
+            className="text-base-content hover:text-primary transition-colors duration-200 font-medium"
+          >
             Home
           </Link>
-        </li>
+        </motion.li>
         {pathnames.map((value, index) => {
           const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+          const isLast = index === pathnames.length - 1;
           return (
-            <li key={to}>
+            <motion.li
+              key={to}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
               <div className="flex items-center">
-                <svg
-                  className="w-6 h-6 text-gray-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+                <HiChevronRight className="w-5 h-5 text-base-content/50" />
+                <Link
+                  to={to}
+                  className={`ml-1 md:ml-2 text-sm md:text-base font-medium ${
+                    isLast
+                      ? 'text-primary pointer-events-none'
+                      : 'text-base-content hover:text-primary transition-colors duration-200'
+                  }`}
+                  aria-current={isLast ? 'page' : undefined}
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <Link to={to} className="ml-1 text-gray-700 hover:text-gray-900">
-                  {value}
+                  {value.charAt(0).toUpperCase() + value.slice(1)}
                 </Link>
               </div>
-            </li>
+            </motion.li>
           );
         })}
       </ol>

@@ -1,16 +1,18 @@
-// src/components/DetailView.jsx
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useSave } from "../context/SaveContext";
+import { useTransfer } from "../context/TransferContext";
 import { format } from "date-fns";
-import { CreditCard, Phone, Send, Copy, CheckCircle, Edit, Save } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from 'react-hot-toast';
+import { useTheme } from "../context/ThemeContext";
+import Breadcrumbs from "../components/Breadcrumbs";
+import { FaCopy, FaEdit, FaSave, FaPlus } from "react-icons/fa";
 
 const DetailView = () => {
   const { collectionName, docId } = useParams();
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,6 +20,7 @@ const DetailView = () => {
   const [newAmount, setNewAmount] = useState("");
 
   const { getDocuments, updateDocument } = useSave();
+  const { addToToday } = useTransfer();
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -39,12 +42,9 @@ const DetailView = () => {
     fetchDocument();
   }, [collectionName, docId, getDocuments]);
 
-  const copyToClipboard = (text, field) => {
-    navigator.clipboard.writeText(text).then(() => {
-      toast.success(`${field} copied to clipboard!`, {
-        icon: <CheckCircle className="text-green-500" />,
-      });
-    });
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard!");
   };
 
   const handleAmountUpdate = async () => {
@@ -59,72 +59,71 @@ const DetailView = () => {
     }
   };
 
-  const renderField = (label, value, icon, isAmount = false) => (
-    <motion.div
-      className="flex items-center justify-between bg-white rounded-lg p-4 shadow-md mb-4"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="flex items-center">
-        {icon}
-        <span className="ml-2 text-gray-700">{label}:</span>
-        {isAmount && editingAmount ? (
+  const handleAddToToday = async () => {
+    if (document) {
+      try {
+        await addToToday(collectionName, document);
+        toast.success("Document added to Today!");
+      } catch (error) {
+        console.error("Error adding document to Today:", error);
+        toast.error("Document is already in the Today collection.");
+      }
+    }
+  };
 
+  const renderField = (label, value, isAmount = false) => (
+    <div className="flex flex-col mb-4">
+      <span className="text-sm font-medium text-gray-500">{label}</span>
+      <div className="flex items-center mt-1">
+        {isAmount && editingAmount ? (
           <input
             type="number"
             value={newAmount}
             onChange={(e) => setNewAmount(e.target.value)}
-            className="ml-2 border bg-white rounded px-2 py-1 w-24"
+            className="text-lg font-semibold mr-2 border rounded px-2 py-1"
           />
         ) : (
-          <span className="ml-2 font-semibold">{value}</span>
+          <span className="text-lg font-semibold mr-2">{value}</span>
         )}
-      </div>
-      <div className="flex items-center">
         {isAmount && (
           <button
             onClick={() => editingAmount ? handleAmountUpdate() : setEditingAmount(true)}
-            className={`mr-2 ${editingAmount ? 'text-green-500 hover:text-green-700' : 'text-blue-500 hover:text-blue-700'} transition-colors`}
+            className="mr-2 text-primary hover:text-primary-focus transition-colors duration-300"
+            title={editingAmount ? "Save" : "Edit"}
           >
-            {editingAmount ? <Save size={18} /> : <Edit size={18} />}
+            {editingAmount ? <FaSave /> : <FaEdit />}
           </button>
         )}
         <button
-          onClick={() => copyToClipboard(value, label)}
-          className="text-blue-500 hover:text-blue-700 transition-colors"
+          onClick={() => copyToClipboard(value)}
+          className="text-primary hover:text-primary-focus transition-colors duration-300"
+          title="Copy to clipboard"
         >
-          <Copy size={18} />
+          <FaCopy />
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 
   const renderContent = () => {
     if (!document) return null;
 
-    const commonFields = [
-      { label: "Amount", value: `₹${document.amount}`, icon: <CreditCard className="text-green-500" size={18} />, isAmount: true },
-    ];
-
     const fields = {
       bankAccounts: [
-        { label: "Account Holder", value: document.accountHolderName, icon: <CreditCard className="text-blue-500" size={18} /> },
-        { label: "Account Number", value: document.accountNumber, icon: <CreditCard className="text-blue-500" size={18} /> },
-        { label: "Bank Name", value: document.bankName, icon: <CreditCard className="text-blue-500" size={18} /> },
-        { label: "IFSC Code", value: document.ifscCode, icon: <CreditCard className="text-blue-500" size={18} /> },
-        ...commonFields,
+        { label: "Account Holder", value: document.accountHolderName },
+        { label: "Account Number", value: document.accountNumber },
+        { label: "Bank Name", value: document.bankName },
+        { label: "IFSC Code", value: document.ifscCode },
+        { label: "Phone Number", value: document.phoneNumber },
       ],
       phoneNumbers: [
-        { label: "Name", value: document.name, icon: <Phone className="text-green-500" size={18} /> },
-        { label: "Phone Number", value: document.phoneNumber, icon: <Phone className="text-green-500" size={18} /> },
-        { label: "Platform", value: document.platform, icon: <Phone className="text-green-500" size={18} /> },
-        ...commonFields,
+        { label: "Name", value: document.name },
+        { label: "Phone Number", value: document.phoneNumber },
+        { label: "Platform", value: document.platform },
       ],
       upiTransfers: [
-        { label: "Username", value: document.username, icon: <Send className="text-purple-500" size={18} /> },
-        { label: "UPI ID", value: document.upiId, icon: <Send className="text-purple-500" size={18} /> },
-        ...commonFields,
+        { label: "Username", value: document.username },
+        { label: "UPI ID", value: document.upiId },
       ],
     };
 
@@ -133,6 +132,7 @@ const DetailView = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
         {fields[collectionName].map((field, index) => (
           <motion.div
@@ -141,40 +141,68 @@ const DetailView = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            {renderField(field.label, field.value, field.icon, field.isAmount)}
+            {renderField(field.label, field.value)}
           </motion.div>
         ))}
       </motion.div>
     );
   };
 
-  if (loading) return <motion.div className="flex justify-center items-center py-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div></motion.div>;
-  if (error) return <motion.p className="text-red-500 mb-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>{error}</motion.p>;
-  if (!document) return <motion.p className="text-gray-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>Document not found</motion.p>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+    </div>
+  );
+  if (error) return <p className="text-red-500 text-center">{error}</p>;
+  if (!document) return <p className="text-gray-500 text-center">Document not found</p>;
 
   return (
-    <motion.div
-      className="max-w-4xl mx-auto p-6 bg-gray-100 rounded-xl shadow-lg"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
-        {collectionName === 'bankAccounts' && 'Bank Account Details'}
-        {collectionName === 'phoneNumbers' && 'Phone Number Details'}
-        {collectionName === 'upiTransfers' && 'UPI Transfer Details'}
-      </h1>
-      {renderContent()}
-      <motion.p
-        className="text-sm text-gray-500 mt-4 text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        Updated: {format(new Date(document.updatedAt.toDate()), "PPpp")}
-      </motion.p>
+    <div className="min-h-screen bg-gradient-to-br from-base-200 to-base-300 relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+      <main className="container mx-auto py-12 px-4 relative z-10">
+        <Breadcrumbs />
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary"
+        >
+          {collectionName === 'bankAccounts' && 'Bank Account Details'}
+          {collectionName === 'phoneNumbers' && 'Phone Number Details'}
+          {collectionName === 'upiTransfers' && 'UPI Transfer Details'}
+        </motion.h1>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-base-100 p-6 rounded-lg shadow-lg"
+        >
+          {renderContent()}
+          <motion.div
+            className="flex justify-center mt-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <button
+              onClick={handleAddToToday}
+              className="bg-primary text-white px-4 py-2 rounded-full flex items-center hover:bg-primary-focus transition-colors duration-300"
+            >
+              <FaPlus className="mr-2" />
+              Add to Today
+            </button>
+          </motion.div>
+          <motion.p
+            className="text-sm text-center mt-4 text-gray-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            Updated: {format(new Date(document.updatedAt.toDate()), "PPpp")}
+          </motion.p>
+        </motion.div>
+      </main>
       <Toaster position="bottom-center" />
-    </motion.div>
+    </div>
   );
 };
 
